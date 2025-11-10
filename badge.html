@@ -5,147 +5,331 @@
   <title>Tessera operatore</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    :root {
+      --sb-primary: #1f3b57;
+      --sb-accent: #f5b300;
+      --sb-valid: #1db954;
+      --sb-expired: #e63946;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: #f4f4f4;
+      background: radial-gradient(circle at top, #e9f2ff 0, #dfe7f3 35%, #cfd4dd 100%);
       margin: 0;
       padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
+
     .card {
-      max-width: 360px;
-      margin: 40px auto;
-      padding: 20px 22px;
-      border-radius: 14px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+      position: relative;
+      max-width: 380px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 22px 22px 18px;
+      border-radius: 20px;
+      box-shadow:
+        0 12px 30px rgba(10, 22, 40, 0.35),
+        0 0 0 1px rgba(255, 255, 255, 0.25);
       color: #fff;
       text-align: center;
+      overflow: hidden;
+      background: #222;
+      backdrop-filter: blur(8px);
     }
-    .valid { background: #28a745; }
-    .expired { background: #dc3545; }
+
+    /* Banner superiore Studio Borghi */
+    .brand-bar {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      background: radial-gradient(circle at 30% 0, #ffffff 0, #f5b300 45%, #ff7a00 100%);
+      color: #1b2734;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      text-align: left;
+    }
+
+    .brand-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 1px;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      opacity: 0.85;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+    }
+
+    .card-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      opacity: 0.88;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Stato valid / expired come overlay di colore */
+    .valid {
+      background: radial-gradient(circle at top left, rgba(0, 0, 0, 0.55) 0, rgba(0, 0, 0, 0.85) 45%, #05130a 100%),
+                  linear-gradient(135deg, #0f5132, var(--sb-valid));
+    }
+
+    .expired {
+      background: radial-gradient(circle at top left, rgba(0, 0, 0, 0.6) 0, rgba(0, 0, 0, 0.9) 45%, #1a0203 100%),
+                  linear-gradient(135deg, #7c151f, var(--sb-expired));
+    }
+
+    /* Contenuto principale */
     .cantiere {
       font-size: 18px;
       font-weight: 800;
-      margin: 0 0 6px;
+      margin: 4px 0 6px;
       text-transform: uppercase;
+      letter-spacing: 0.08em;
     }
+
     .nome {
-      font-size: 18px;
-      font-weight: 700;
-      margin: 4px 0;
+      font-size: 20px;
+      font-weight: 800;
+      margin: 6px 0 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
     }
+
     .azienda {
-      font-size: 14px;
-      margin: 2px 0 8px;
+      font-size: 13px;
+      margin: 0 0 12px;
+      opacity: 0.9;
     }
+
+    .info-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin: 8px 0 14px;
+      font-size: 13px;
+    }
+
     .info {
       font-size: 13px;
-      margin: 2px 0;
+      margin: 0;
+      opacity: 0.92;
     }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: rgba(0, 0, 0, 0.18);
+      margin: 4px 0 10px;
+    }
+
     .status {
-      font-size: 18px;
+      font-size: 13px;
       font-weight: 800;
-      margin: 14px 0 10px;
       text-transform: uppercase;
+      letter-spacing: 0.14em;
+      margin: 0;
     }
+
     .scadenza {
-      font-size: 14px;
-      margin: 2px 0 10px;
+      font-size: 13px;
+      margin: 0 0 4px;
+      opacity: 0.9;
     }
+
+    /* Footer con brand evidente */
     .footer {
       font-size: 11px;
-      opacity: 0.8;
-      margin-top: 8px;
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.4);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .footer-badge {
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 179, 0, 0.9);
+      background: rgba(245, 179, 0, 0.14);
+      font-size: 9px;
+      font-weight: 700;
+    }
+
+    .footer strong {
+      font-weight: 800;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px 18px 16px;
+        border-radius: 18px;
+      }
+      .brand-title {
+        font-size: 12px;
+      }
+      .brand-subtitle {
+        font-size: 10px;
+        letter-spacing: 0.16em;
+      }
+      .cantiere {
+        font-size: 16px;
+      }
+      .nome {
+        font-size: 18px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="card" id="card">
+    <div class="brand-bar">
+      <div class="brand-logo">SB</div>
+      <div class="brand-text">
+        <div class="brand-title">Studio Borghi</div>
+        <div class="brand-subtitle">Sicurezza cantieri</div>
+      </div>
+      <div class="card-label">Tessera operatore</div>
+    </div>
+
     <div id="cantiere" class="cantiere"></div>
 
     <div id="nomeCompleto" class="nome"></div>
     <div id="azienda" class="azienda"></div>
 
-    <div id="nascita" class="info"></div>
-    <div id="scadenza" class="scadenza"></div>
+    <div class="info-row">
+      <div id="nascita" class="info"></div>
+      <div id="scadenza" class="scadenza"></div>
+    </div>
 
-    <div id="status" class="status"></div>
+    <div class="status-pill">
+      <div id="status" class="status"></div>
+    </div>
 
-    <div class="footer">Badge realizzato da Studio Borghi</div>
+    <div class="footer">
+      <span class="footer-badge">Studio Borghi</span>
+      <span>Badge realizzato da <strong>Studio Borghi</strong></span>
+    </div>
   </div>
 
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const get = k => (params.get(k) || "").trim();
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const get = k => (params.get(k) || "").trim();
 
-  const cantiere = get("cantiere");
-  const nome = get("nome");
-  const cognome = get("cognome");
-  const azienda = get("azienda");
-  const nascita = get("nascita");      // attesa in formato gg/mm/aaaa (da Excel)
-  const scad = get("scad");            // attesa in formato aaaa-mm-gg (da Excel VBA)
+    const cantiere = get("cantiere");
+    const nome = get("nome");
+    const cognome = get("cognome");
+    const azienda = get("azienda");
+    const nascita = get("nascita");      // attesa in formato gg/mm/aaaa (da Excel)
+    const scad = get("scad");            // attesa in formato aaaa-mm-gg (da Excel VBA)
 
-  const cardEl = document.getElementById("card");
-  const cantiereEl = document.getElementById("cantiere");
-  const nomeEl = document.getElementById("nomeCompleto");
-  const aziendaEl = document.getElementById("azienda");
-  const nascitaEl = document.getElementById("nascita");
-  const scadenzaEl = document.getElementById("scadenza");
-  const statusEl = document.getElementById("status");
+    const cardEl = document.getElementById("card");
+    const cantiereEl = document.getElementById("cantiere");
+    const nomeEl = document.getElementById("nomeCompleto");
+    const aziendaEl = document.getElementById("azienda");
+    const nascitaEl = document.getElementById("nascita");
+    const scadenzaEl = document.getElementById("scadenza");
+    const statusEl = document.getElementById("status");
 
-  // Cantiere
-  cantiereEl.textContent = cantiere || "CANTIERE NON SPECIFICATO";
+    // Cantiere
+    cantiereEl.textContent = cantiere || "CANTIERE NON SPECIFICATO";
 
-  // Nome + cognome
-  const fullName = (nome + " " + cognome).trim();
-  nomeEl.textContent = fullName || "OPERATORE";
+    // Nome + cognome
+    const fullName = (nome + " " + cognome).trim();
+    nomeEl.textContent = fullName || "OPERATORE";
 
-  // Azienda
-  if (azienda) {
-    aziendaEl.textContent = azienda;
-  } else {
-    aziendaEl.style.display = "none";
-  }
+    // Azienda
+    if (azienda) {
+      aziendaEl.textContent = azienda;
+    } else {
+      aziendaEl.style.display = "none";
+    }
 
-  // Data di nascita
-  if (nascita) {
-    nascitaEl.textContent = "Data di nascita: " + nascita;
-  } else {
-    nascitaEl.style.display = "none";
-  }
+    // Data di nascita
+    if (nascita) {
+      nascitaEl.textContent = "Data di nascita: " + nascita;
+    } else {
+      nascitaEl.style.display = "none";
+    }
 
-  // Scadenza e stato
-  let valido = false;
-  if (scad) {
-    // scad in formato aaaa-mm-gg
-    const parts = scad.split("-");
-    if (parts.length === 3) {
-      const y = parseInt(parts[0], 10);
-      const m = parseInt(parts[1], 10);
-      const d = parseInt(parts[2], 10);
-      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-        const scadenzaDate = new Date(y, m - 1, d, 23, 59, 59);
-        const today = new Date();
-        today.setHours(0,0,0,0);
+    // Scadenza e stato
+    let valido = false;
+    if (scad) {
+      // scad in formato aaaa-mm-gg
+      const parts = scad.split("-");
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10);
+        const d = parseInt(parts[2], 10);
+        if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+          const scadenzaDate = new Date(y, m - 1, d, 23, 59, 59);
+          const today = new Date();
+          today.setHours(0,0,0,0);
 
-        valido = scadenzaDate >= today;
+          valido = scadenzaDate >= today;
 
-        // Mostro la scadenza in formato gg/mm/aaaa
-        scadenzaEl.textContent = "Valido fino al: " + String(d).padStart(2,"0") + "/" + String(m).padStart(2,"0") + "/" + y;
+          // Mostro la scadenza in formato gg/mm/aaaa
+          scadenzaEl.textContent =
+            "Valido fino al: " +
+            String(d).padStart(2,"0") + "/" +
+            String(m).padStart(2,"0") + "/" + y;
+        }
       }
     }
-  }
 
-  if (!scad) {
-    scadenzaEl.textContent = "Scadenza non specificata";
-  }
+    if (!scad) {
+      scadenzaEl.textContent = "Scadenza non specificata";
+    }
 
-  if (valido) {
-    cardEl.classList.add("valid");
-    statusEl.textContent = "ABILITATO ALL'ACCESSO";
-  } else {
-    cardEl.classList.add("expired");
-    statusEl.textContent = "NON ABILITATO";
-  }
-</script>
+    if (valido) {
+      cardEl.classList.add("valid");
+      statusEl.textContent = "ABILITATO ALL'ACCESSO";
+    } else {
+      cardEl.classList.add("expired");
+      statusEl.textContent = "NON ABILITATO";
+    }
+  </script>
 </body>
 </html>
