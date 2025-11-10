@@ -12,68 +12,138 @@
       padding: 20px;
     }
     .card {
-      max-width: 340px;
+      max-width: 360px;
       margin: 40px auto;
-      padding: 20px;
-      border-radius: 12px;
+      padding: 20px 22px;
+      border-radius: 14px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.18);
       color: #fff;
       text-align: center;
     }
     .valid { background: #28a745; }
     .expired { background: #dc3545; }
-    h1 {
-      font-size: 20px;
-      margin: 0 0 8px;
+    .cantiere {
+      font-size: 18px;
       font-weight: 800;
+      margin: 0 0 6px;
+      text-transform: uppercase;
+    }
+    .nome {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 4px 0;
+    }
+    .azienda {
+      font-size: 14px;
+      margin: 2px 0 8px;
+    }
+    .info {
+      font-size: 13px;
+      margin: 2px 0;
     }
     .status {
       font-size: 18px;
-      font-weight: 700;
-      margin: 16px 0;
+      font-weight: 800;
+      margin: 14px 0 10px;
       text-transform: uppercase;
     }
-    p { margin: 4px 0; font-size: 14px; }
-    small { font-size: 11px; opacity: 0.8; }
+    .scadenza {
+      font-size: 14px;
+      margin: 2px 0 10px;
+    }
+    .footer {
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
   <div class="card" id="card">
-    <h1 id="nomeCompleto"></h1>
-    <div class="status" id="status"></div>
-    <p>Scadenza: <span id="scadenza"></span></p>
-    <small id="extra"></small>
+    <div id="cantiere" class="cantiere"></div>
+
+    <div id="nomeCompleto" class="nome"></div>
+    <div id="azienda" class="azienda"></div>
+
+    <div id="nascita" class="info"></div>
+    <div id="scadenza" class="scadenza"></div>
+
+    <div id="status" class="status"></div>
+
+    <div class="footer">Badge realizzato da Studio Borghi</div>
   </div>
 
 <script>
   const params = new URLSearchParams(window.location.search);
-  const nome = params.get("nome") || "";
-  const cognome = params.get("cognome") || "";
-  const scad = params.get("scad"); // formato: AAAA-MM-GG, es: 2025-12-31
-  const note = params.get("note") || "";
+  const get = k => (params.get(k) || "").trim();
 
-  const card = document.getElementById("card");
-  const nomeCompletoEl = document.getElementById("nomeCompleto");
-  const statusEl = document.getElementById("status");
+  const cantiere = get("cantiere");
+  const nome = get("nome");
+  const cognome = get("cognome");
+  const azienda = get("azienda");
+  const nascita = get("nascita");      // attesa in formato gg/mm/aaaa (da Excel)
+  const scad = get("scad");            // attesa in formato aaaa-mm-gg (da Excel VBA)
+
+  const cardEl = document.getElementById("card");
+  const cantiereEl = document.getElementById("cantiere");
+  const nomeEl = document.getElementById("nomeCompleto");
+  const aziendaEl = document.getElementById("azienda");
+  const nascitaEl = document.getElementById("nascita");
   const scadenzaEl = document.getElementById("scadenza");
-  const extraEl = document.getElementById("extra");
+  const statusEl = document.getElementById("status");
 
-  nomeCompletoEl.textContent = (nome + " " + cognome).trim();
-  scadenzaEl.textContent = scad ? scad.split("-").reverse().join("/") : "-";
-  if (note) extraEl.textContent = note;
+  // Cantiere
+  cantiereEl.textContent = cantiere || "CANTIERE NON SPECIFICATO";
 
-  if (scad) {
-    const dataScadenza = new Date(scad);
-    const oggi = new Date();
-    if (dataScadenza >= oggi) {
-      card.classList.add("valid");
-      statusEl.textContent = "ABILITATO ALL'ACCESSO";
-    } else {
-      card.classList.add("expired");
-      statusEl.textContent = "NON ABILITATO";
-    }
+  // Nome + cognome
+  const fullName = (nome + " " + cognome).trim();
+  nomeEl.textContent = fullName || "OPERATORE";
+
+  // Azienda
+  if (azienda) {
+    aziendaEl.textContent = azienda;
   } else {
-    card.classList.add("expired");
+    aziendaEl.style.display = "none";
+  }
+
+  // Data di nascita
+  if (nascita) {
+    nascitaEl.textContent = "Data di nascita: " + nascita;
+  } else {
+    nascitaEl.style.display = "none";
+  }
+
+  // Scadenza e stato
+  let valido = false;
+  if (scad) {
+    // scad in formato aaaa-mm-gg
+    const parts = scad.split("-");
+    if (parts.length === 3) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const d = parseInt(parts[2], 10);
+      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+        const scadenzaDate = new Date(y, m - 1, d, 23, 59, 59);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        valido = scadenzaDate >= today;
+
+        // Mostro la scadenza in formato gg/mm/aaaa
+        scadenzaEl.textContent = "Valido fino al: " + String(d).padStart(2,"0") + "/" + String(m).padStart(2,"0") + "/" + y;
+      }
+    }
+  }
+
+  if (!scad) {
+    scadenzaEl.textContent = "Scadenza non specificata";
+  }
+
+  if (valido) {
+    cardEl.classList.add("valid");
+    statusEl.textContent = "ABILITATO ALL'ACCESSO";
+  } else {
+    cardEl.classList.add("expired");
     statusEl.textContent = "NON ABILITATO";
   }
 </script>
