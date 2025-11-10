@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Tessera operatore</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .card {
+      max-width: 340px;
+      margin: 40px auto;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+      color: #fff;
+      text-align: center;
+    }
+    .valid { background: #28a745; }
+    .expired { background: #dc3545; }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 8px;
+      font-weight: 800;
+    }
+    .status {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 16px 0;
+      text-transform: uppercase;
+    }
+    p { margin: 4px 0; font-size: 14px; }
+    small { font-size: 11px; opacity: 0.8; }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <h1 id="nomeCompleto"></h1>
+    <div class="status" id="status"></div>
+    <p>Scadenza: <span id="scadenza"></span></p>
+    <small id="extra"></small>
+  </div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const nome = params.get("nome") || "";
+  const cognome = params.get("cognome") || "";
+  const scad = params.get("scad"); // formato: AAAA-MM-GG, es: 2025-12-31
+  const note = params.get("note") || "";
+
+  const card = document.getElementById("card");
+  const nomeCompletoEl = document.getElementById("nomeCompleto");
+  const statusEl = document.getElementById("status");
+  const scadenzaEl = document.getElementById("scadenza");
+  const extraEl = document.getElementById("extra");
+
+  nomeCompletoEl.textContent = (nome + " " + cognome).trim();
+  scadenzaEl.textContent = scad ? scad.split("-").reverse().join("/") : "-";
+  if (note) extraEl.textContent = note;
+
+  if (scad) {
+    const dataScadenza = new Date(scad);
+    const oggi = new Date();
+    if (dataScadenza >= oggi) {
+      card.classList.add("valid");
+      statusEl.textContent = "ABILITATO ALL'ACCESSO";
+    } else {
+      card.classList.add("expired");
+      statusEl.textContent = "NON ABILITATO";
+    }
+  } else {
+    card.classList.add("expired");
+    statusEl.textContent = "NON ABILITATO";
+  }
+</script>
+</body>
+</html>
