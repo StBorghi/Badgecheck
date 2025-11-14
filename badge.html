@@ -164,43 +164,63 @@
   </div>
 
 <script>
-  // ===== ENCODING HELPERS =====
-  // RFC3986 strict encode (anche i caratteri ! ' ( ) *)
-  const encodeRFC3986 = (str) =>
-    encodeURIComponent(str).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
-
-  /**
-   * Costruisce un URL sicuro con querystring encodata.
-   * - base: ad es. location.origin + location.pathname
-   * - params: oggetto { cantiere, nome, ... }
-   *   - rimuove automaticamente chiavi con valori null/undefined/"" (stringa vuota)
-   */
-  function buildCardUrl(base, params = {}) {
-    const url = new URL(base, window.location.origin);
-    const qs = new URLSearchParams();
-
-    for (const [k, v] of Object.entries(params)) {
-      if (v == null) continue;
-      const s = String(v).trim();
-      if (!s) continue;
-      // URLSearchParams esegue già la codifica percentuale corretta per chiavi/valori
-      qs.set(k, s);
-    }
-    url.search = qs.toString();
-    return url.toString();
+  // ===== Base64URL decode → Uint8Array =====
+  function base64UrlToBytes(b64url) {
+    let b64 = b64url.replace(/-/g, '+').replace(/_/g, '/');
+    const pad = b64.length % 4;
+    if (pad) b64 += '='.repeat(4 - pad);
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
   }
 
-  // ===== LETTURA PARAMETRI =====
-  const params = new URLSearchParams(window.location.search);
-  const get = k => (params.get(k) || "").trim();
+  // ===== XOR in-place (chiave condivisa) =====
+  const PAYLOAD_KEY = "SB2025!"; // deve coincidere col VBA
+  function xorBytes(bytes, key) {
+    const k = new TextEncoder().encode(key);
+    const out = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) {
+      out[i] = bytes[i] ^ k[i % k.length];
+    }
+    return out;
+  }
 
-  const cantiere = get("cantiere");
-  const nome = get("nome");
-  const cognome = get("cognome");
-  const azienda = get("azienda");
-  const nascita = get("nascita");
-  const scad = get("scad");
+  // ===== Prova a leggere payload compatto p=... =====
+  const qs = new URLSearchParams(window.location.search);
+  const p = qs.get("p");
 
+  let cantiere = "", nome = "", cognome = "", azienda = "", nascita = "", scad = "";
+
+  if (p) {
+    try {
+      const bytes = base64UrlToBytes(p);
+      const plain = new TextDecoder("utf-8").decode(xorBytes(bytes, PAYLOAD_KEY));
+      // ordine: cantiere, nome, cognome, azienda, nascita, scad
+      const parts = plain.split("\t");
+      cantiere = (parts[0] || "").trim();
+      nome     = (parts[1] || "").trim();
+      cognome  = (parts[2] || "").trim();
+      azienda  = (parts[3] || "").trim();
+      nascita  = (parts[4] || "").trim();
+      scad     = (parts[5] || "").trim();
+    } catch (e) {
+      console.error("Decodifica payload fallita:", e);
+    }
+  }
+
+  // Fallback: vecchi parametri in chiaro (compatibilità)
+  if (!nome && !cognome && !cantiere && !scad) {
+    const get = k => (qs.get(k) || "").trim();
+    cantiere = get("cantiere");
+    nome = get("nome");
+    cognome = get("cognome");
+    azienda = get("azienda");
+    nascita = get("nascita");
+    scad = get("scad");
+  }
+
+  // ===== Tuo codice di rendering invariato sotto =====
   const cardEl = document.getElementById("card");
   const cantiereEl = document.getElementById("cantiere");
   const nomeEl = document.getElementById("nomeCompleto");
@@ -247,20 +267,10 @@
     cardEl.classList.add("expired");
     statusEl.textContent = "NON ABILITATO";
   }
-
-  // ===== ESEMPIO: URL "condivisibile" con encoding corretto =====
-  // Usa il path corrente; se servirà usare segmenti di path dinamici falli passare da encodeRFC3986()
-  const shareUrl = buildCardUrl(location.origin + location.pathname, {
-    cantiere,
-    nome,
-    cognome,
-    azienda,
-    nascita,
-    scad
-  });
-  console.log("URL condivisibile:", shareUrl);
 </script>
+
 
 </body>
 </html>
+
 
