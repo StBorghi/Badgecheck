@@ -163,63 +163,104 @@
     </div>
   </div>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const get = k => (params.get(k) || "").trim();
+<script>
+  // ===== ENCODING HELPERS =====
+  // RFC3986 strict encode (anche i caratteri ! ' ( ) *)
+  const encodeRFC3986 = (str) =>
+    encodeURIComponent(str).replace(/[!'()*]/g, c => '%' + c.charCodeAt(0).toString(16).toUpperCase());
 
-    const cantiere = get("cantiere");
-    const nome = get("nome");
-    const cognome = get("cognome");
-    const azienda = get("azienda");
-    const nascita = get("nascita");
-    const scad = get("scad");
+  /**
+   * Costruisce un URL sicuro con querystring encodata.
+   * - base: ad es. location.origin + location.pathname
+   * - params: oggetto { cantiere, nome, ... }
+   *   - rimuove automaticamente chiavi con valori null/undefined/"" (stringa vuota)
+   */
+  function buildCardUrl(base, params = {}) {
+    const url = new URL(base, window.location.origin);
+    const qs = new URLSearchParams();
 
-    const cardEl = document.getElementById("card");
-    const cantiereEl = document.getElementById("cantiere");
-    const nomeEl = document.getElementById("nomeCompleto");
-    const aziendaEl = document.getElementById("azienda");
-    const nascitaEl = document.getElementById("nascita");
-    const scadenzaEl = document.getElementById("scadenza");
-    const statusEl = document.getElementById("status");
+    for (const [k, v] of Object.entries(params)) {
+      if (v == null) continue;
+      const s = String(v).trim();
+      if (!s) continue;
+      // URLSearchParams esegue già la codifica percentuale corretta per chiavi/valori
+      qs.set(k, s);
+    }
+    url.search = qs.toString();
+    return url.toString();
+  }
 
-    cantiereEl.textContent = cantiere || "CANTIERE NON SPECIFICATO";
-    const fullName = (nome + " " + cognome).trim();
-    nomeEl.textContent = fullName || "OPERATORE";
+  // ===== LETTURA PARAMETRI =====
+  const params = new URLSearchParams(window.location.search);
+  const get = k => (params.get(k) || "").trim();
 
-    if (azienda) aziendaEl.textContent = azienda;
-    else aziendaEl.style.display = "none";
+  const cantiere = get("cantiere");
+  const nome = get("nome");
+  const cognome = get("cognome");
+  const azienda = get("azienda");
+  const nascita = get("nascita");
+  const scad = get("scad");
 
-    if (nascita) nascitaEl.textContent = "Data di nascita: " + nascita;
-    else nascitaEl.style.display = "none";
+  const cardEl = document.getElementById("card");
+  const cantiereEl = document.getElementById("cantiere");
+  const nomeEl = document.getElementById("nomeCompleto");
+  const aziendaEl = document.getElementById("azienda");
+  const nascitaEl = document.getElementById("nascita");
+  const scadenzaEl = document.getElementById("scadenza");
+  const statusEl = document.getElementById("status");
 
-    let valido = false;
-    if (scad) {
-      const parts = scad.split("-");
-      if (parts.length === 3) {
-        const y = parseInt(parts[0], 10);
-        const m = parseInt(parts[1], 10);
-        const d = parseInt(parts[2], 10);
-        if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-          const scadenzaDate = new Date(y, m - 1, d, 23, 59, 59);
-          const today = new Date();
-          today.setHours(0,0,0,0);
-          valido = scadenzaDate >= today;
-          scadenzaEl.textContent = "Valido fino al " +
-            String(d).padStart(2,"0") + "/" +
-            String(m).padStart(2,"0") + "/" + y;
-        }
+  cantiereEl.textContent = cantiere || "CANTIERE NON SPECIFICATO";
+  const fullName = (nome + " " + cognome).trim();
+  nomeEl.textContent = fullName || "OPERATORE";
+
+  if (azienda) aziendaEl.textContent = azienda;
+  else aziendaEl.style.display = "none";
+
+  if (nascita) nascitaEl.textContent = "Data di nascita: " + nascita;
+  else nascitaEl.style.display = "none";
+
+  let valido = false;
+  if (scad) {
+    const parts = scad.split("-");
+    if (parts.length === 3) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      const d = parseInt(parts[2], 10);
+      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+        const scadenzaDate = new Date(y, m - 1, d, 23, 59, 59);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        valido = scadenzaDate >= today;
+        scadenzaEl.textContent = "Valido fino al " +
+          String(d).padStart(2,"0") + "/" +
+          String(m).padStart(2,"0") + "/" + y;
       }
-    } else {
-      scadenzaEl.textContent = "Scadenza non specificata";
     }
+  } else {
+    scadenzaEl.textContent = "Scadenza non specificata";
+  }
 
-    if (valido) {
-      cardEl.classList.add("valid");
-      statusEl.textContent = "ABILITATO ALL'ACCESSO";
-    } else {
-      cardEl.classList.add("expired");
-      statusEl.textContent = "NON ABILITATO";
-    }
-  </script>
+  if (valido) {
+    cardEl.classList.add("valid");
+    statusEl.textContent = "ABILITATO ALL'ACCESSO";
+  } else {
+    cardEl.classList.add("expired");
+    statusEl.textContent = "NON ABILITATO";
+  }
+
+  // ===== ESEMPIO: URL "condivisibile" con encoding corretto =====
+  // Usa il path corrente; se servirà usare segmenti di path dinamici falli passare da encodeRFC3986()
+  const shareUrl = buildCardUrl(location.origin + location.pathname, {
+    cantiere,
+    nome,
+    cognome,
+    azienda,
+    nascita,
+    scad
+  });
+  console.log("URL condivisibile:", shareUrl);
+</script>
+
 </body>
 </html>
+
